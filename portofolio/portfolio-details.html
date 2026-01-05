@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Online Voting System - Portfolio Details | Neela Yaswanth</title>
+  <meta name="description" content="Online Voting System (Votefy) - A secure voting platform built with React, TypeScript, Tailwind CSS, and Node.js. Features RBAC, real-time tracking, and comprehensive election management.">
+  <meta name="keywords" content="Online Voting System, React, TypeScript, Node.js, RBAC, Voting Platform, Web Development">
+
+  <!-- Favicons -->
+  <link href="assets/img/favicon.png" rel="icon">
+  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&family=Nunito:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/vendor/aos/aos.css" rel="stylesheet">
+  <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+  <!-- Main CSS File -->
+  <link href="assets/css/main.css" rel="stylesheet">
+
+  <!-- =======================================================
+  * Template Name: SnapFolio
+  * Template URL: https://bootstrapmade.com/snapfolio-bootstrap-portfolio-template/
+  * Updated: Jul 21 2025 with Bootstrap v5.3.7
+  * Author: BootstrapMade.com
+  * License: https://bootstrapmade.com/license/
+  ======================================================== -->
+</head>
+
+<body class="portfolio-details-page">
+
+  <!-- Custom Cursor -->
+  <div class="custom-cursor" id="customCursor"></div>
+  <div class="custom-cursor-follower" id="customCursorFollower"></div>
+
+  <header id="header" class="header dark-background d-flex flex-column justify-content-center">
+    <i class="header-toggle d-xl-none bi bi-list"></i>
+
+    <div class="header-container d-flex flex-column align-items-start">
+      <nav id="navmenu" class="navmenu">
+        <ul>
+          <li><a href="index.html#hero"><i class="bi bi-house navicon"></i>Home</a></li>
+          <li><a href="index.html#about"><i class="bi bi-person navicon"></i> About</a></li>
+          <li><a href="index.html#resume"><i class="bi bi-file-earmark-text navicon"></i> Resume</a></li>
+          <li><a href="index.html#portfolio"><i class="bi bi-images navicon"></i> Portfolio</a></li>
+          <li><a href="index.html#services"><i class="bi bi-hdd-stack navicon"></i> Services</a></li>
+          <li><a href="index.html#contact"><i class="bi bi-envelope navicon"></i> Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="social-links text-center">
+        <a href="https://github.com/Neelayaswanth" target="_blank" class="github"><i class="bi bi-github"></i></a>
+        <a href="https://www.linkedin.com/in/neela-yaswanth-220b492b9" target="_blank" class="linkedin"><i class="bi bi-linkedin"></i></a>
+      </div>
+
+    </div>
+
+  </header>
+
+  <main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background">
+      <div class="container d-lg-flex justify-content-between align-items-center">
+        <h1 class="mb-2 mb-lg-0" id="project-title">Portfolio Details</h1>
+        <nav class="breadcrumbs">
+          <ol>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#portfolio">Portfolio</a></li>
+            <li class="current" id="breadcrumb-current">Portfolio Details</li>
+          </ol>
+        </nav>
+      </div>
+    </div><!-- End Page Title -->
+
+    <!-- Portfolio Details Section -->
+    <section id="portfolio-details" class="portfolio-details section">
+
+      <div class="container" data-aos="fade-up" data-aos-delay="100">
+
+        <div class="row gy-4">
+
+          <div class="col-lg-8">
+            <div class="portfolio-details-slider swiper init-swiper">
+
+              <script type="application/json" class="swiper-config">
+                {
+                  "loop": true,
+                  "speed": 600,
+                  "autoplay": {
+                    "delay": 5000
+                  },
+                  "slidesPerView": "auto",
+                  "pagination": {
+                    "el": ".swiper-pagination",
+                    "type": "bullets",
+                    "clickable": true
+                  }
+                }
+              </script>
+
+              <div class="swiper-wrapper align-items-center">
+
+                <div class="swiper-slide">
+                  <img src="assets/img/portfolio/portfolio-1.webp" alt="Portfolio Image" class="img-fluid" loading="lazy">
+                </div>
+
+                <div class="swiper-slide">
+                  <img src="assets/img/portfolio/portfolio-10.webp" alt="Portfolio Image" class="img-fluid" loading="lazy">
+                </div>
+
+                <div class="swiper-slide">
+                  <img src="assets/img/portfolio/portfolio-7.webp" alt="Portfolio Image" class="img-fluid" loading="lazy">
+                </div>
+
+              </div>
+              <div class="swiper-pagination"></div>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="portfolio-info" data-aos="fade-left" data-aos-delay="200">
+              <h3>Project Information</h3>
+              <ul>
+                <li><strong>Category</strong>: Web Development</li>
+                <li><strong>Client</strong>: Personal Project</li>
+                <li><strong>Project date</strong>: 2024</li>
+                <li><strong>Project URL</strong>: <a href="https://votefy.netlify.app" target="_blank" rel="noopener noreferrer">votefy.netlify.app</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-lg-12">
+            <div class="portfolio-description" data-aos="fade-up" data-aos-delay="300">
+              <h2>Project Overview</h2>
+              <p>
+                Votefy is a modern, secure online voting platform built with React, TypeScript, and Node.js. The system implements Role-Based Access Control (RBAC) to ensure secure and fair voting processes. The platform features a responsive design using Tailwind CSS, providing an intuitive user experience across all devices.
+              </p>
+              <p>
+                The application supports multiple user roles including administrators, voters, and election organizers. It includes real-time vote tracking, secure authentication, and comprehensive election management features. The backend is built with Node.js and Express, ensuring robust performance and scalability.
+              </p>
+
+              <div class="features mt-4">
+                <h3>Key Features</h3>
+                <!-- Features Bento Grid -->
+                <div class="features-bento-grid" data-aos="fade-up" data-aos-delay="400">
+                  <div class="bento-grid">
+                    <!-- Features will be dynamically inserted here -->
+                  </div>
+                </div>
+              </div>
+
+              <div class="technologies mt-4">
+                <h3>Technologies Used</h3>
+                <div class="tech-tags">
+                  <span class="badge bg-primary me-2 mb-2">React</span>
+                  <span class="badge bg-primary me-2 mb-2">TypeScript</span>
+                  <span class="badge bg-primary me-2 mb-2">Tailwind CSS</span>
+                  <span class="badge bg-primary me-2 mb-2">Node.js</span>
+                  <span class="badge bg-primary me-2 mb-2">Express.js</span>
+                  <span class="badge bg-primary me-2 mb-2">RESTful API</span>
+                  <span class="badge bg-primary me-2 mb-2">JWT Authentication</span>
+                  <span class="badge bg-primary me-2 mb-2">PostgreSQL</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section><!-- /Portfolio Details Section -->
+
+  </main>
+
+  <footer id="footer" class="footer position-relative">
+
+    <div class="container">
+      <div class="copyright text-center ">
+        <p>© <span>Copyright</span> <strong class="px-1 sitename">Neela Yaswanth</strong> <span>All Rights Reserved</span></p>
+      </div>
+      <div class="credits">
+        Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+      </div>
+    </div>
+
+  </footer>
+
+  <!-- Scroll Top -->
+  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Preloader -->
+  <div id="preloader"></div>
+
+  <!-- Vendor JS Files -->
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/vendor/php-email-form/validate.js"></script>
+  <script src="assets/vendor/aos/aos.js"></script>
+  <script src="assets/vendor/typed.js/typed.umd.js"></script>
+  <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
+  <script src="assets/vendor/waypoints/noframework.waypoints.js"></script>
+  <script src="assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+  <script src="assets/vendor/imagesloaded/imagesloaded.pkgd.min.js"></script>
+  <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
+
+  <!-- Main JS File -->
+  <script src="assets/js/main.js"></script>
+  
+  <!-- Custom Cursor -->
+  <script src="assets/js/cursor.js"></script>
+
+  <!-- Portfolio Details Dynamic Content -->
+  <script>
+    // Project data
+    const projects = {
+      'voting-system': {
+        title: 'Online Voting System',
+        category: 'Web Development',
+        client: 'Personal Project',
+        date: '2024',
+        url: 'https://votefy.netlify.app',
+        images: [
+          'assets/img/portfolio/portfolio-1.webp',
+          'assets/img/portfolio/portfolio-10.webp',
+          'assets/img/portfolio/portfolio-7.webp'
+        ],
+        overview: [
+          'Votefy is a modern, secure online voting platform built with React, TypeScript, and Node.js. The system implements Role-Based Access Control (RBAC) to ensure secure and fair voting processes. The platform features a responsive design using Tailwind CSS, providing an intuitive user experience across all devices.',
+          'The application supports multiple user roles including administrators, voters, and election organizers. It includes real-time vote tracking, secure authentication, and comprehensive election management features. The backend is built with Node.js and Express, ensuring robust performance and scalability.'
+        ],
+        features: [
+          {
+            icon: 'bi-shield-check',
+            title: 'Role-Based Access Control (RBAC)',
+            description: 'Secure authentication and authorization system with different access levels for administrators, voters, and organizers. Ensures only authorized users can perform specific actions.'
+          },
+          {
+            icon: 'bi-phone',
+            title: 'Responsive Design',
+            description: 'Fully responsive interface built with Tailwind CSS, providing seamless user experience across desktop, tablet, and mobile devices. Modern UI/UX design principles implemented.'
+          },
+          {
+            icon: 'bi-graph-up',
+            title: 'Real-time Vote Tracking',
+            description: 'Live vote counting and result visualization. Administrators can monitor election progress in real-time with interactive charts and statistics.'
+          },
+          {
+            icon: 'bi-gear',
+            title: 'Election Management',
+            description: 'Comprehensive election creation and management system. Organizers can create polls, set voting periods, manage candidates, and configure voting rules.'
+          },
+          {
+            icon: 'bi-lock',
+            title: 'Secure Voting',
+            description: 'One-vote-per-user enforcement, encrypted vote storage, and audit trails. Ensures vote integrity and prevents fraudulent activities.'
+          },
+          {
+            icon: 'bi-code-slash',
+            title: 'Modern Tech Stack',
+            description: 'Built with React, TypeScript, Tailwind CSS, and Node.js. Type-safe development with TypeScript ensures code reliability and maintainability.'
+          }
+        ],
+        technologies: ['React', 'TypeScript', 'Tailwind CSS', 'Node.js', 'Express.js', 'RESTful API', 'JWT Authentication', 'PostgreSQL']
+      },
+      'dry-eye': {
+        title: 'Dry Eye Disease Prediction',
+        category: 'Machine Learning',
+        client: 'Personal Project',
+        date: '2024',
+        url: 'https://dryeye.streamlit.app',
+        images: [
+          'assets/img/portfolio/portfolio-2.webp',
+          'assets/img/portfolio/portfolio-5.webp',
+          'assets/img/portfolio/portfolio-6.webp'
+        ],
+        overview: [
+          'A machine learning-based medical diagnosis system for predicting dry eye disease using Convolutional Neural Networks (CNN). The application uses image processing techniques with OpenCV to analyze eye images and predict the likelihood of dry eye disease with approximately 90% accuracy.',
+          'The system is built using Python, TensorFlow, and OpenCV for image preprocessing and model training. The user interface is developed with Streamlit, providing an intuitive platform for medical professionals and researchers to upload eye images and receive instant predictions.'
+        ],
+        features: [
+          {
+            icon: 'bi-cpu',
+            title: 'CNN Model Architecture',
+            description: 'Deep learning model using Convolutional Neural Networks trained on eye image datasets. Achieves ~90% accuracy in dry eye disease prediction through advanced image recognition.'
+          },
+          {
+            icon: 'bi-image',
+            title: 'Image Processing with OpenCV',
+            description: 'Advanced image preprocessing and feature extraction using OpenCV. Handles various image formats and optimizes images for model input, ensuring consistent and accurate predictions.'
+          },
+          {
+            icon: 'bi-graph-up-arrow',
+            title: 'High Accuracy Prediction',
+            description: 'Trained model achieves approximately 90% accuracy in detecting dry eye disease. Continuous model improvement through validation and testing on diverse datasets.'
+          },
+          {
+            icon: 'bi-speedometer2',
+            title: 'Real-time Analysis',
+            description: 'Fast prediction system that provides instant results upon image upload. Streamlit interface enables quick diagnosis workflow for medical professionals.'
+          },
+          {
+            icon: 'bi-shield-check',
+            title: 'Medical Application',
+            description: 'Designed for healthcare professionals to assist in early detection of dry eye disease. Helps in screening and preliminary diagnosis processes.'
+          },
+          {
+            icon: 'bi-code-slash',
+            title: 'Python ML Stack',
+            description: 'Built with Python, TensorFlow, Keras, OpenCV, and Streamlit. Leverages state-of-the-art deep learning frameworks for medical image analysis.'
+          }
+        ],
+        technologies: ['Python', 'TensorFlow', 'Keras', 'OpenCV', 'Streamlit', 'NumPy', 'Pandas', 'Matplotlib', 'CNN', 'Deep Learning']
+      }
+    };
+
+    // Get project parameter from URL
+    function getURLParameter(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+
+    // Load project data
+    function loadProject(projectId) {
+      const project = projects[projectId];
+      
+      if (!project) {
+        // Default to voting-system if project not found
+        const defaultProject = projects['voting-system'];
+        loadProjectData(defaultProject);
+        return;
+      }
+
+      loadProjectData(project);
+    }
+
+    // Load project data into page
+    function loadProjectData(project) {
+      // Update page title
+      document.title = `${project.title} - Portfolio Details | Neela Yaswanth`;
+      
+      // Update breadcrumb title
+      const pageTitle = document.querySelector('.page-title h1');
+      if (pageTitle) {
+        pageTitle.textContent = project.title;
+      }
+
+      // Update breadcrumb current
+      const breadcrumbCurrent = document.querySelector('.breadcrumbs .current');
+      if (breadcrumbCurrent) {
+        breadcrumbCurrent.textContent = project.title;
+      }
+
+      // Update project info
+      const projectInfo = document.querySelector('.portfolio-info ul');
+      if (projectInfo) {
+        projectInfo.innerHTML = `
+          <li><strong>Category</strong>: ${project.category}</li>
+          <li><strong>Client</strong>: ${project.client}</li>
+          <li><strong>Project date</strong>: ${project.date}</li>
+          <li><strong>Project URL</strong>: <a href="${project.url}" target="_blank" rel="noopener noreferrer">${project.url.replace('https://', '').replace('http://', '')}</a></li>
+        `;
+      }
+
+      // Update images in slider
+      const swiperWrapper = document.querySelector('.swiper-wrapper');
+      if (swiperWrapper) {
+        swiperWrapper.innerHTML = project.images.map(img => `
+          <div class="swiper-slide">
+            <img src="${img}" alt="${project.title}" class="img-fluid" loading="lazy">
+          </div>
+        `).join('');
+      }
+
+      // Update project description
+      const descriptionSection = document.querySelector('.portfolio-description');
+      if (descriptionSection) {
+        const overviewHTML = project.overview.map(p => `<p>${p}</p>`).join('');
+        
+        // Generate features in bento grid format
+        const featuresHTML = project.features.map((feature, index) => {
+          // Determine bento size based on index for visual variety
+          let bentoSize = 'bento-small';
+          if (index === 0) {
+            bentoSize = 'bento-large'; // First feature gets large card
+          } else if (index === 1 || index === 2) {
+            bentoSize = 'bento-medium'; // Next two get medium cards
+          }
+          
+          return `
+            <div class="bento-item ${bentoSize}" data-aos="fade-up" data-aos-delay="${400 + (index * 100)}">
+              <div class="feature-card-bento">
+                <div class="feature-icon-bento">
+                  <i class="bi ${feature.icon}"></i>
+                </div>
+                <h4>${feature.title}</h4>
+                <p>${feature.description}</p>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        const technologiesHTML = project.technologies.map(tech => 
+          `<span class="badge bg-primary me-2 mb-2">${tech}</span>`
+        ).join('');
+
+        descriptionSection.innerHTML = `
+          <h2>Project Overview</h2>
+          ${overviewHTML}
+          <div class="features mt-4">
+            <h3>Key Features</h3>
+            <div class="features-bento-grid" data-aos="fade-up" data-aos-delay="400">
+              <div class="bento-grid">
+                ${featuresHTML}
+              </div>
+            </div>
+          </div>
+          <div class="technologies mt-4">
+            <h3>Technologies Used</h3>
+            <div class="tech-tags">
+              ${technologiesHTML}
+            </div>
+          </div>
+        `;
+      }
+
+      // Reinitialize Swiper after content update
+      setTimeout(() => {
+        const swiperElement = document.querySelector('.portfolio-details-slider.init-swiper');
+        if (swiperElement && typeof Swiper !== 'undefined') {
+          // Destroy existing swiper if it exists
+          if (swiperElement.swiper) {
+            swiperElement.swiper.destroy(true, true);
+          }
+          
+          // Get config from script tag
+          const configScript = swiperElement.querySelector('.swiper-config');
+          if (configScript) {
+            try {
+              const config = JSON.parse(configScript.textContent);
+              // Initialize new Swiper
+              new Swiper(swiperElement, config);
+            } catch (e) {
+              console.error('Error parsing Swiper config:', e);
+            }
+          }
+        }
+      }, 200);
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      const projectId = getURLParameter('project') || 'voting-system';
+      loadProject(projectId);
+    });
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Modal</title>
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #000; color: #fff; padding: 50px; }
+  </style>
+</head>
+<body>
+  <h1>Test First Visit Modal</h1>
+  <button onclick="testModal()" class="btn btn-primary">Test Modal</button>
+  
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- First Visit Modal -->
+  <div class="modal fade" id="firstVisitModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px;">
+        <div class="modal-body text-center p-5">
+          <div class="mb-4">
+            <i class="bi bi-heart-fill" style="font-size: 3rem; color: #ff6b35;">❤️</i>
+          </div>
+          <h3 class="mb-3" style="color: #ffffff;">Welcome!</h3>
+          <p class="mb-4" style="color: rgba(255, 255, 255, 0.8);">
+            Is this your first time visiting my portfolio?
+          </p>
+          
+          <div class="mb-4">
+            <input type="text" id="visitor-name-input" class="form-control" placeholder="Your name (optional)" 
+              style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50px; color: #ffffff; padding: 12px 20px; text-align: center; max-width: 300px; margin: 0 auto;">
+          </div>
+          
+          <div class="d-flex gap-3 justify-content-center">
+            <button type="button" class="btn btn-primary btn-lg" onclick="alert('First time!')">Yes, First Time</button>
+            <button type="button" class="btn btn-outline-light btn-lg" onclick="alert('Returning!')">No, Returning</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    function testModal() {
+      const modalEl = document.getElementById('firstVisitModal');
+      const modal = new bootstrap.Modal(modalEl, {
+        backdrop: 'static',
+        keyboard: false
+      });
+      modal.show();
+    }
+  </script>
+</body>
+</html>
+

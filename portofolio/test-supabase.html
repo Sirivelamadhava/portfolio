@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supabase Connection Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .status {
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #results {
+      margin-top: 20px;
+    }
+    pre {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>🔌 Supabase Connection Test</h1>
+    <p>This page tests your Supabase connection. <strong>No backend server needed!</strong></p>
+    
+    <div id="status"></div>
+    
+    <div>
+      <button onclick="testConnection()">Test Connection</button>
+      <button onclick="testTables()">Test Tables</button>
+      <button onclick="testInsert()">Test Insert Message</button>
+      <button onclick="testSelect()">Test Select Messages</button>
+    </div>
+    
+    <div id="results"></div>
+  </div>
+
+  <!-- Supabase Client Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Supabase Configuration -->
+  <script src="assets/js/supabase-config.js"></script>
+
+  <script>
+    function showStatus(message, type) {
+      const statusDiv = document.getElementById('status');
+      statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+    }
+
+    function addResult(title, data, success = true) {
+      const resultsDiv = document.getElementById('results');
+      const resultDiv = document.createElement('div');
+      resultDiv.className = `status ${success ? 'success' : 'error'}`;
+      resultDiv.innerHTML = `<strong>${title}</strong><pre>${JSON.stringify(data, null, 2)}</pre>`;
+      resultsDiv.appendChild(resultDiv);
+    }
+
+    function getSupabaseClient() {
+      if (window.SupabaseConfig && window.SupabaseConfig.client) {
+        return window.SupabaseConfig.client();
+      }
+      return null;
+    }
+
+    async function testConnection() {
+      showStatus('Testing Supabase connection...', 'info');
+      const supabase = getSupabaseClient();
+      
+      if (!supabase) {
+        showStatus('❌ Error: Supabase client not initialized. Check supabase-config.js', 'error');
+        return;
+      }
+
+      try {
+        // Test connection by checking if we can query
+        const { data, error } = await supabase.from('messages').select('count').limit(1);
+        
+        if (error) {
+          if (error.message.includes('relation') || error.message.includes('does not exist')) {
+            showStatus('⚠️ Connection works, but tables don\'t exist. Run the SQL schema in Supabase!', 'error');
+            addResult('Error Details', error, false);
+          } else if (error.message.includes('permission') || error.message.includes('policy')) {
+            showStatus('⚠️ Connection works, but RLS policies may need adjustment.', 'error');
+            addResult('Error Details', error, false);
+          } else {
+            showStatus('❌ Connection error: ' + error.message, 'error');
+            addResult('Error Details', error, false);
+          }
+        } else {
+          showStatus('✅ Supabase connection successful!', 'success');
+          addResult('Connection Test', { success: true, message: 'Connected to Supabase' }, true);
+        }
+      } catch (error) {
+        showStatus('❌ Connection failed: ' + error.message, 'error');
+        addResult('Connection Error', error, false);
+      }
+    }
+
+    async function testTables() {
+      showStatus('Testing if tables exist...', 'info');
+      const supabase = getSupabaseClient();
+      
+      if (!supabase) {
+        showStatus('❌ Supabase client not initialized', 'error');
+        return;
+      }
+
+      const tables = ['messages', 'profile_views', 'visitors', 'analytics'];
+      const results = {};
+
+      for (const table of tables) {
+        try {
+          const { data, error } = await supabase.from(table).select('*').limit(1);
+          if (error) {
+            results[table] = { exists: false, error: error.message };
+          } else {
+            results[table] = { exists: true, rowCount: data ? data.length : 0 };
+          }
+        } catch (error) {
+          results[table] = { exists: false, error: error.message };
+        }
+      }
+
+      addResult('Table Check Results', results, true);
+      
+      const allExist = Object.values(results).every(r => r.exists);
+      if (allExist) {
+        showStatus('✅ All tables exist!', 'success');
+      } else {
+        showStatus('⚠️ Some tables are missing. Run the SQL schema in Supabase!', 'error');
+      }
+    }
+
+    async function testInsert() {
+      showStatus('Testing insert operation...', 'info');
+      const supabase = getSupabaseClient();
+      
+      if (!supabase) {
+        showStatus('❌ Supabase client not initialized', 'error');
+        return;
+      }
+
+      try {
+        const testMessage = {
+          name: 'Test User',
+          email: 'test@example.com',
+          subject: 'Test Message',
+          message: 'This is a test message from the connection test page.'
+        };
+
+        const { data, error } = await supabase
+          .from('messages')
+          .insert([testMessage])
+          .select();
+
+        if (error) {
+          showStatus('❌ Insert failed: ' + error.message, 'error');
+          addResult('Insert Error', error, false);
+        } else {
+          showStatus('✅ Insert successful! Message ID: ' + data[0].id, 'success');
+          addResult('Insert Result', data[0], true);
+        }
+      } catch (error) {
+        showStatus('❌ Insert error: ' + error.message, 'error');
+        addResult('Insert Error', error, false);
+      }
+    }
+
+    async function testSelect() {
+      showStatus('Testing select operation...', 'info');
+      const supabase = getSupabaseClient();
+      
+      if (!supabase) {
+        showStatus('❌ Supabase client not initialized', 'error');
+        return;
+      }
+
+      try {
+        const { data, error, count } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact' })
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (error) {
+          showStatus('❌ Select failed: ' + error.message, 'error');
+          addResult('Select Error', error, false);
+        } else {
+          showStatus(`✅ Select successful! Found ${count || data.length} messages.`, 'success');
+          addResult('Select Result', { count: count || data.length, messages: data }, true);
+        }
+      } catch (error) {
+        showStatus('❌ Select error: ' + error.message, 'error');
+        addResult('Select Error', error, false);
+      }
+    }
+
+    // Auto-test on load
+    window.addEventListener('load', function() {
+      setTimeout(() => {
+        const supabase = getSupabaseClient();
+        if (supabase) {
+          showStatus('✅ Supabase client loaded! Click buttons to test.', 'info');
+        } else {
+          showStatus('⚠️ Supabase client not loaded. Check console for errors.', 'error');
+        }
+      }, 500);
+    });
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /private/
+
+Sitemap: https://yaswanthneela.me/sitemap.xml
+
+# Crawl-delay and Request-rate (adjust as needed)
+Crawl-delay: 1

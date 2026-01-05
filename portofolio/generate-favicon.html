@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Favicon Generator - Letter Y</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    canvas {
+      border: 1px solid #ddd;
+      margin: 10px;
+      display: block;
+    }
+    button {
+      padding: 10px 20px;
+      background: #ff922b;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: #e67e22;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Favicon Generator - Letter Y</h1>
+    <p>This will generate favicon.png (32x32) and apple-touch-icon.png (180x180) with the letter "Y"</p>
+    
+    <h3>Favicon (32x32):</h3>
+    <canvas id="favicon" width="32" height="32"></canvas>
+    
+    <h3>Apple Touch Icon (180x180):</h3>
+    <canvas id="apple" width="180" height="180"></canvas>
+    
+    <div>
+      <button onclick="generateFavicon()">Generate Favicon.png</button>
+      <button onclick="generateAppleIcon()">Generate Apple Touch Icon</button>
+      <button onclick="generateBoth()">Generate Both</button>
+    </div>
+    
+    <p id="status"></p>
+  </div>
+  
+  <script>
+    function drawY(canvas, size) {
+      const ctx = canvas.getContext('2d');
+      
+      // Dark background
+      ctx.fillStyle = '#0a0a0a';
+      ctx.fillRect(0, 0, size, size);
+      
+      // Draw Y
+      ctx.fillStyle = '#ff922b';
+      const fontSize = size === 32 ? 22 : 130;
+      ctx.font = `bold ${fontSize}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Y', size / 2, size / 2 + (size === 32 ? 2 : 5));
+    }
+    
+    function generateFavicon() {
+      const canvas = document.getElementById('favicon');
+      drawY(canvas, 32);
+      
+      canvas.toBlob(function(blob) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'favicon.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        document.getElementById('status').textContent = 'Favicon.png downloaded! Save it to assets/img/favicon.png';
+      });
+    }
+    
+    function generateAppleIcon() {
+      const canvas = document.getElementById('apple');
+      drawY(canvas, 180);
+      
+      canvas.toBlob(function(blob) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'apple-touch-icon.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        document.getElementById('status').textContent = 'Apple touch icon downloaded! Save it to assets/img/apple-touch-icon.png';
+      });
+    }
+    
+    function generateBoth() {
+      generateFavicon();
+      setTimeout(() => {
+        generateAppleIcon();
+        document.getElementById('status').textContent = 'Both icons downloaded! Save them to assets/img/ folder';
+      }, 500);
+    }
+    
+    // Draw previews on load
+    window.onload = function() {
+      drawY(document.getElementById('favicon'), 32);
+      drawY(document.getElementById('apple'), 180);
+    };
+  </script>
+</body>
+</html>
+
