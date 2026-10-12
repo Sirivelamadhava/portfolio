@@ -6,10 +6,10 @@
 // Supabase configuration
 const SUPABASE_CONFIG = {
   // Your Supabase project URL
-  url: 'https://fubudmekboxqnfzoclzw.supabase.co',
+  url: 'https://dwgidvgqbdollaoriysk.supabase.co',
   
   // Your Supabase publishable/anonymous key
-  anonKey: 'sb_publishable_Km4RL8c0RYR95PPZDzhl5g_x9SblV_9'
+  anonKey: 'sb_publishable_FSXyNVLl4UEXJLSg_j0YxQ_L-e3WKjw'
 };
 
 // Supabase client instance
@@ -18,6 +18,12 @@ let supabaseClient = null;
 // Function to initialize Supabase client
 function initSupabaseClient() {
   try {
+    if (!SUPABASE_CONFIG.url || !SUPABASE_CONFIG.anonKey) {
+      console.warn('Supabase credentials are not configured. Add your project URL and anon key to assets/js/supabase-config.js to enable database features.');
+      supabaseClient = null;
+      return null;
+    }
+
     // Check if supabase library is loaded
     if (typeof supabase === 'undefined') {
       console.warn('Supabase library not loaded yet');

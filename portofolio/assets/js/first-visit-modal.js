@@ -201,7 +201,7 @@
           actual_first_visit: isActuallyFirstVisit
         });
 
-        const { data: insertData, error: insertError } = await supabase
+        const { error: insertError } = await supabase
           .from('visitor_responses')
           .insert({
             visitor_id: uniqueVisitorId,
@@ -212,8 +212,7 @@
             ip_address: ipAddress,
             user_agent: navigator.userAgent || 'unknown',
             response_time: new Date().toISOString()
-          })
-          .select();
+          });
 
         if (insertError) {
           console.error('❌ Error saving visitor response:', insertError);

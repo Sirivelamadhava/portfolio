@@ -10,18 +10,36 @@ const { createClient } = require('@supabase/supabase-js');
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://fubudmekboxqnfzoclzw.supabase.co';
 // Note: For server-side operations, you should use the service_role key (not the publishable key)
 // Get it from: Supabase Dashboard > Settings > API > service_role key (secret)
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || '';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
+const SUPABASE_KEY = SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || '';
 
-// Create Supabase client with service role key for server-side operations
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-});
+// Public routes use the publishable key unless a service key is configured.
+const supabase = SUPABASE_KEY
+  ? createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+  : null;
+
+// Admin operations must use the service-role key and never fall back to the public key.
+const adminSupabase = SUPABASE_SERVICE_KEY
+  ? createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+  : null;
 
 // Test connection
 async function testConnection() {
+  if (!supabase) {
+    console.warn('Supabase credentials not configured. Database-backed features will be unavailable until SUPABASE_SERVICE_KEY is set.');
+    return false;
+  }
+
   try {
     const { data, error } = await supabase
       .from('messages')
@@ -42,6 +60,6 @@ async function testConnection() {
 
 module.exports = {
   supabase,
+  adminSupabase,
   testConnection
 };
-

@@ -13,10 +13,11 @@ function getSupabaseClient() {
   
   // Fallback: try to get from global supabase
   if (typeof supabase !== 'undefined' && typeof window.supabase !== 'undefined') {
-    // Initialize if config exists
     if (window.SupabaseConfig && window.SupabaseConfig.config) {
       const config = window.SupabaseConfig.config;
-      return supabase.createClient(config.url, config.anonKey);
+      if (config && config.url && config.anonKey) {
+        return supabase.createClient(config.url, config.anonKey);
+      }
     }
   }
   
@@ -67,7 +68,7 @@ async function trackProfileView() {
     });
     
     // Insert profile view
-    const { data: viewData, error: viewError } = await supabase
+    const { error: viewError } = await supabase
       .from('profile_views')
       .insert([
         {
@@ -76,8 +77,7 @@ async function trackProfileView() {
           referrer: referrer,
           session_id: sessionId
         }
-      ])
-      .select();
+      ]);
 
     if (viewError) {
       console.error('Error tracking view:', viewError);
@@ -233,110 +233,131 @@ async function updateViewCount() {
 
 // Submit contact form
 async function submitContactForm(formData) {
-  // Wait for Supabase to be ready
-  let supabase = getSupabaseClient();
-  if (!supabase) {
-    // Try to initialize again
-    if (window.SupabaseConfig && window.SupabaseConfig.init) {
-      supabase = window.SupabaseConfig.init();
+  const backendBaseUrl = window.PORTFOLIO_API_URL || 'http://localhost:3000';
+
+  try {
+    const response = await fetch(`${backendBaseUrl}/api/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject || 'No Subject',
+        message: formData.message
+      })
+    });
+
+    const payload = await response.json().catch(() => ({}));
+
+    if (response.ok && payload.success) {
+      return {
+        success: true,
+        message: payload.message || 'Message sent successfully',
+        id: payload.data?.id
+      };
     }
-    
+
+    throw new Error(payload.message || 'Failed to send message. Please try again later.');
+  } catch (backendError) {
+    console.warn('Backend submit failed, retrying via direct Supabase client:', backendError);
+
+    let supabase = getSupabaseClient();
+    if (!supabase) {
+      if (window.SupabaseConfig && window.SupabaseConfig.init) {
+        supabase = window.SupabaseConfig.init();
+      }
+    }
+
     if (!supabase) {
       console.error('Supabase client not available');
       return {
         success: false,
-        message: 'Database connection not available. Please refresh the page and try again.'
+        message: backendError.message || 'Database connection not available. Please refresh the page and try again.'
       };
     }
-  }
 
-  try {
-    // Insert message
-    const { data, error } = await supabase
-      .from('messages')
-      .insert([
-        {
-          name: formData.name,
-          email: formData.email,
-          subject: formData.subject || 'No Subject',
-          message: formData.message
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .insert([
+          {
+            name: formData.name,
+            email: formData.email,
+            subject: formData.subject || 'No Subject',
+            message: formData.message
+          }
+        ]);
+
+      if (error) {
+        console.error('Error submitting message:', error);
+
+        let errorMessage = 'Failed to send message. ';
+        if (error.message.includes('relation') || error.message.includes('does not exist')) {
+          errorMessage += 'Database tables not set up. Please contact the website administrator.';
+        } else if (error.message.includes('permission') || error.message.includes('policy')) {
+          errorMessage += 'Permission denied. Please check database permissions.';
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage += 'Network error. Please check your internet connection.';
+        } else {
+          errorMessage += error.message || 'Please try again later.';
         }
-      ])
-      .select();
 
-    if (error) {
-      console.error('Error submitting message:', error);
-      
-      // Provide more helpful error messages
-      let errorMessage = 'Failed to send message. ';
-      if (error.message.includes('relation') || error.message.includes('does not exist')) {
-        errorMessage += 'Database tables not set up. Please contact the website administrator.';
-      } else if (error.message.includes('permission') || error.message.includes('policy')) {
-        errorMessage += 'Permission denied. Please check database permissions.';
-      } else if (error.message.includes('network') || error.message.includes('fetch')) {
-        errorMessage += 'Network error. Please check your internet connection.';
-      } else {
-        errorMessage += error.message || 'Please try again later.';
+        return {
+          success: false,
+          message: errorMessage
+        };
       }
-      
+
+      const today = new Date().toISOString().split('T')[0];
+      const { data: analyticsData, error: analyticsError } = await supabase
+        .from('analytics')
+        .select('*')
+        .eq('date', today)
+        .single();
+
+      if (analyticsData && !analyticsError) {
+        await supabase
+          .from('analytics')
+          .update({
+            messages_received: (analyticsData.messages_received || 0) + 1
+          })
+          .eq('date', today);
+      } else {
+        await supabase
+          .from('analytics')
+          .upsert({
+            date: today,
+            total_views: 0,
+            unique_visitors: 0,
+            messages_received: 1
+          }, {
+            onConflict: 'date'
+          });
+      }
+
+      return {
+        success: true,
+        message: 'Message sent successfully'
+      };
+    } catch (supabaseError) {
+      console.error('Error submitting form:', supabaseError);
+
+      let errorMessage = 'Failed to send message. ';
+      if (supabaseError.message && supabaseError.message.includes('fetch')) {
+        errorMessage += 'Network error. Please check your internet connection and try again.';
+      } else if (supabaseError.message && supabaseError.message.includes('Failed to fetch')) {
+        errorMessage += 'Unable to connect to the server. Please check your internet connection.';
+      } else {
+        errorMessage += supabaseError.message || 'An unexpected error occurred. Please try again later.';
+      }
+
       return {
         success: false,
         message: errorMessage
       };
     }
-
-    // Update analytics for today
-    const today = new Date().toISOString().split('T')[0];
-    const { data: analyticsData, error: analyticsError } = await supabase
-      .from('analytics')
-      .select('*')
-      .eq('date', today)
-      .single();
-
-    if (analyticsData && !analyticsError) {
-      // Update existing analytics
-      await supabase
-        .from('analytics')
-        .update({
-          messages_received: (analyticsData.messages_received || 0) + 1
-        })
-        .eq('date', today);
-    } else {
-      // Insert new analytics (using upsert to handle race conditions)
-      await supabase
-        .from('analytics')
-        .upsert({
-          date: today,
-          total_views: 0,
-          unique_visitors: 0,
-          messages_received: 1
-        }, {
-          onConflict: 'date'
-        });
-    }
-
-    return {
-      success: true,
-      message: 'Message sent successfully',
-      id: data[0].id
-    };
-  } catch (error) {
-    console.error('Error submitting form:', error);
-    
-    // Handle network errors specifically
-    let errorMessage = 'Failed to send message. ';
-    if (error.message && error.message.includes('fetch')) {
-      errorMessage += 'Network error. Please check your internet connection and try again.';
-    } else if (error.message && error.message.includes('Failed to fetch')) {
-      errorMessage += 'Unable to connect to the server. Please check your internet connection.';
-    } else {
-      errorMessage += error.message || 'An unexpected error occurred. Please try again later.';
-    }
-    
-    return {
-      success: false,
-      message: errorMessage
-    };
   }
 }
 
@@ -434,27 +455,8 @@ document.addEventListener('DOMContentLoaded', function() {
         submitButton.textContent = 'Sending...';
       }
 
-      // Submit to Supabase
+      // Submit via the backend API first, then fall back gracefully if needed.
       try {
-        // Ensure Supabase is ready before submitting
-        let supabaseReady = getSupabaseClient();
-        if (!supabaseReady) {
-          // Try to initialize
-          if (window.SupabaseConfig && window.SupabaseConfig.init) {
-            supabaseReady = window.SupabaseConfig.init();
-          }
-          
-          // If still not ready, wait a bit and try once more
-          if (!supabaseReady) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            supabaseReady = getSupabaseClient();
-          }
-        }
-        
-        if (!supabaseReady) {
-          throw new Error('Database connection not available. Please refresh the page and try again.');
-        }
-        
         const result = await submitContactForm(formData);
 
         // Hide loading

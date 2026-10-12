@@ -37,6 +37,7 @@ app.get('/api/health', (req, res) => {
 
 // API Routes
 app.use('/api/messages', require('./routes/messages'));
+app.use('/api/admin', require('./routes/admin'));
 app.use('/api/views', require('./routes/views'));
 
 // 404 handler
@@ -87,4 +88,3 @@ process.on('uncaughtException', (err) => {
 
 // Start the server
 startServer();
-

@@ -5,11 +5,19 @@
 
 const express = require('express');
 const router = express.Router();
-const { supabase } = require('../config/database');
+const { supabase, adminSupabase } = require('../config/database');
+const { authenticateAdmin } = require('../middleware/admin-auth');
 
 // POST /api/messages - Submit contact form
 router.post('/', async (req, res) => {
   try {
+    if (!supabase) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database is not configured. Set SUPABASE_SERVICE_KEY in the backend .env file.'
+      });
+    }
+
     const { name, email, subject, message } = req.body;
 
     // Validation
@@ -30,7 +38,7 @@ router.post('/', async (req, res) => {
     }
 
     // Insert message
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('messages')
       .insert([
         {
@@ -40,9 +48,7 @@ router.post('/', async (req, res) => {
           message: message.trim(),
           read_status: false
         }
-      ])
-      .select()
-      .single();
+      ]);
 
     if (error) {
       console.error('Error inserting message:', error);
@@ -59,8 +65,7 @@ router.post('/', async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Message sent successfully',
-      data: data
+      message: 'Message sent successfully'
     });
   } catch (error) {
     console.error('Error in POST /api/messages:', error);
@@ -73,11 +78,18 @@ router.post('/', async (req, res) => {
 });
 
 // GET /api/messages - Get all messages
-router.get('/', async (req, res) => {
+router.get('/', authenticateAdmin, async (req, res) => {
   try {
+    if (!adminSupabase) {
+      return res.status(503).json({
+        success: false,
+        message: 'Set SUPABASE_SERVICE_KEY in backend/.env to enable private admin data access.'
+      });
+    }
+
     const { limit = 100, offset = 0, read_status } = req.query;
 
-    let query = supabase
+    let query = adminSupabase
       .from('messages')
       .select('*')
       .order('created_at', { ascending: false })
@@ -115,11 +127,18 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/messages/:id - Get single message
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateAdmin, async (req, res) => {
   try {
+    if (!adminSupabase) {
+      return res.status(503).json({
+        success: false,
+        message: 'Set SUPABASE_SERVICE_KEY in backend/.env to enable private admin data access.'
+      });
+    }
+
     const { id } = req.params;
 
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
       .from('messages')
       .select('*')
       .eq('id', id)
@@ -149,12 +168,19 @@ router.get('/:id', async (req, res) => {
 });
 
 // PATCH /api/messages/:id/read - Mark message as read
-router.patch('/:id/read', async (req, res) => {
+router.patch('/:id/read', authenticateAdmin, async (req, res) => {
   try {
+    if (!adminSupabase) {
+      return res.status(503).json({
+        success: false,
+        message: 'Set SUPABASE_SERVICE_KEY in backend/.env to enable private admin data access.'
+      });
+    }
+
     const { id } = req.params;
     const { read_status = true } = req.body;
 
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
       .from('messages')
       .update({ read_status: read_status })
       .eq('id', id)
@@ -186,11 +212,18 @@ router.patch('/:id/read', async (req, res) => {
 });
 
 // DELETE /api/messages/:id - Delete message
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateAdmin, async (req, res) => {
   try {
+    if (!adminSupabase) {
+      return res.status(503).json({
+        success: false,
+        message: 'Set SUPABASE_SERVICE_KEY in backend/.env to enable private admin data access.'
+      });
+    }
+
     const { id } = req.params;
 
-    const { error } = await supabase
+    const { error } = await adminSupabase
       .from('messages')
       .delete()
       .eq('id', id);
@@ -255,4 +288,3 @@ async function updateAnalytics(date, field) {
 }
 
 module.exports = router;
-

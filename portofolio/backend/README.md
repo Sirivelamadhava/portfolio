@@ -20,23 +20,28 @@ npm install
 
 ### 2. Environment Configuration
 
-Create a `.env` file in the backend directory (optional - defaults are provided):
+Create a `.env` file in the backend directory:
 
 ```env
 # Supabase Configuration
-SUPABASE_URL=https://fubudmekboxqnfzoclzw.supabase.co
-SUPABASE_ANON_KEY=sb_publishable_Km4RL8c0RYR95PPZDzhl5g_x9SblV_9
-SUPABASE_SERVICE_KEY=your_service_key_here
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your_publishable_key
+SUPABASE_SERVICE_KEY=your_service_role_or_secret_key
 
 # Server Configuration
 PORT=3000
 FRONTEND_URL=http://localhost:5500
 
+# Admin dashboard credentials (keep private; never use the publishable key here)
+ADMIN_USERNAME=choose_a_username
+ADMIN_PASSWORD=choose_a_strong_password
+ADMIN_TOKEN_SECRET=generate_a_long_random_secret
+
 # Environment
 NODE_ENV=development
 ```
 
-**Note**: If you don't create a `.env` file, the server will use default values from the configuration.
+The admin dashboard reads private message data through authenticated backend routes. `SUPABASE_SERVICE_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and `ADMIN_TOKEN_SECRET` are required for admin login and must never be exposed in frontend files or committed to source control. Restart the backend after changing `.env`.
 
 ### 3. Start the Server
 
@@ -59,10 +64,10 @@ The server will start on `http://localhost:3000`
 
 ### Messages
 - `POST /api/messages` - Submit contact form
-- `GET /api/messages` - Get all messages
-- `GET /api/messages/:id` - Get single message
-- `PATCH /api/messages/:id/read` - Mark message as read
-- `DELETE /api/messages/:id` - Delete message
+- `POST /api/admin/login` - Authenticate the admin and receive a short-lived token
+- `GET /api/admin/messages` - Get messages (admin bearer token required)
+- `PATCH /api/admin/messages/:id/read` - Mark message as read (admin bearer token required)
+- `DELETE /api/admin/messages/:id` - Delete message (admin bearer token required)
 
 ### Analytics
 - `POST /api/views` - Track profile view
@@ -139,4 +144,3 @@ The server uses:
 - This backend is optional - the frontend can work directly with Supabase
 - The backend provides a RESTful API layer over Supabase
 - For production, consider using Supabase's service role key instead of anon key
-

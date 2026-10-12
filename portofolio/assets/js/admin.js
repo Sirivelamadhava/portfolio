@@ -3,11 +3,28 @@
  * Handles authentication, analytics loading, and dashboard functionality
  */
 
-// Authentication credentials
-const ADMIN_CREDENTIALS = {
-  username: 'yash',
-  password: '1797365'
-};
+const ADMIN_API_URL = `${window.PORTFOLIO_API_URL || 'http://localhost:3000'}/api/admin`;
+
+async function adminRequest(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  headers.set('Authorization', `Bearer ${sessionStorage.getItem('adminToken') || ''}`);
+  if (options.body) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  const response = await fetch(`${ADMIN_API_URL}${path}`, { ...options, headers });
+  const payload = await response.json().catch(() => ({}));
+
+  if (response.status === 401) {
+    sessionStorage.removeItem('adminToken');
+    sessionStorage.removeItem('adminAuthenticated');
+    showLogin();
+  }
+  if (!response.ok || !payload.success) {
+    throw new Error(payload.message || 'Admin request failed.');
+  }
+  return payload;
+}
 
 // Store full data for view more functionality
 window.allVisitorsData = [];
@@ -20,7 +37,7 @@ window.messagesExpanded = false;
 
 // Check if user is authenticated
 function checkAuthentication() {
-  const isAuthenticated = sessionStorage.getItem('adminAuthenticated') === 'true';
+  const isAuthenticated = Boolean(sessionStorage.getItem('adminToken'));
   if (isAuthenticated) {
     showDashboard();
   } else {
@@ -116,7 +133,7 @@ function setupLoginForm() {
   const loginForm = document.getElementById('login-form');
   if (!loginForm) return;
   
-  loginForm.addEventListener('submit', function(e) {
+  loginForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const username = document.getElementById('username')?.value.trim();
@@ -129,13 +146,23 @@ function setupLoginForm() {
     errorDiv.style.display = 'none';
     errorDiv.textContent = '';
     
-    // Validate credentials
-    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+    try {
+      const response = await fetch(`${ADMIN_API_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.message || 'Unable to sign in.');
+      }
+
       const previousLoginTimestamp = localStorage.getItem('adminLastLoginTimestamp');
       const newLoginTimestamp = Date.now();
       const newLoginTimeISO = new Date().toISOString();
       
       // Set authentication
+      sessionStorage.setItem('adminToken', payload.token);
       sessionStorage.setItem('adminAuthenticated', 'true');
       sessionStorage.setItem('adminLoginTime', newLoginTimestamp.toString());
       
@@ -161,9 +188,9 @@ function setupLoginForm() {
       
       // Show dashboard
       showDashboard();
-    } else {
+    } catch (error) {
       // Show error
-      errorDiv.textContent = 'Invalid username or password. Please try again.';
+      errorDiv.textContent = error.message;
       errorDiv.style.display = 'block';
       
       // Clear password field
@@ -181,6 +208,7 @@ function logout() {
   if (confirm('Are you sure you want to logout?')) {
     sessionStorage.removeItem('adminAuthenticated');
     sessionStorage.removeItem('adminLoginTime');
+    sessionStorage.removeItem('adminToken');
     showLogin();
     
     // Clear form
@@ -232,8 +260,7 @@ async function checkDatabaseConnection() {
 
 // Load analytics
 async function loadAnalytics() {
-  // Check authentication
-  if (sessionStorage.getItem('adminAuthenticated') !== 'true') {
+  if (!sessionStorage.getItem('adminToken')) {
     showLogin();
     return;
   }
@@ -244,145 +271,15 @@ async function loadAnalytics() {
     refreshBtn.innerHTML = '<span class="loading-spinner"></span> Loading...';
   }
 
-  const supabase = getSupabaseClient();
-  
-  if (!supabase) {
-    showError('Supabase client not initialized. Please check your configuration.');
-    return;
-  }
-
-  // Check connection
-  const isConnected = await checkDatabaseConnection();
-  if (!isConnected) {
-    showError('Cannot connect to database. Please check your Supabase configuration.');
-    return;
-  }
-
   try {
-    // Load analytics data
-    const [viewsResult, messagesResult] = await Promise.all([
-      supabase.from('profile_views').select('*', { count: 'exact', head: true }),
-      supabase.from('messages').select('*', { count: 'exact', head: true })
-    ]);
-
-    if (viewsResult.error) throw viewsResult.error;
-    if (messagesResult.error) throw messagesResult.error;
-
-    /**
-     * Calculate Unique Visitors - CLEAR AND RELIABLE METHOD
-     * 
-     * How it works:
-     * 1. The 'visitors' table stores one row per unique visitor
-     * 2. Each row has a unique 'ip_address' (enforced by database constraint)
-     * 3. For localhost: ip_address = 'session_XXXXX' (unique per session)
-     * 4. For real IPs: ip_address = actual IP address
-     * 5. We count distinct ip_address values from visitors who visited in last 30 days
-     */
-    let uniqueVisitorsCount = 0;
-    try {
-      // Step 1: Get all visitors from visitors table
-      const { data: allVisitors, error: visitorsError } = await supabase
-        .from('visitors')
-        .select('ip_address, last_visit, first_visit');
-      
-      if (visitorsError) {
-        console.error('[Unique Visitors] Database error:', visitorsError);
-        throw visitorsError;
-      }
-      
-      if (!allVisitors || allVisitors.length === 0) {
-        console.log('[Unique Visitors] No visitors found in database');
-        uniqueVisitorsCount = 0;
-      } else {
-        // Step 2: Calculate 30 days ago timestamp
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const cutoffDate = thirtyDaysAgo.toISOString();
-        
-        // Step 3: Count unique visitors who visited in last 30 days
-        const uniqueSet = new Set();
-        let totalVisitors = 0;
-        let recentVisitors = 0;
-        
-        allVisitors.forEach(visitor => {
-          totalVisitors++;
-          
-          // Check if visitor visited in last 30 days
-          const lastVisit = visitor.last_visit || visitor.first_visit;
-          const isRecent = lastVisit && lastVisit >= cutoffDate;
-          
-          if (isRecent) {
-            recentVisitors++;
-            // Each ip_address in visitors table is already unique (enforced by UNIQUE constraint)
-            // So we just count distinct ip_address values
-            if (visitor.ip_address) {
-              uniqueSet.add(visitor.ip_address);
-            }
-          }
-        });
-        
-        uniqueVisitorsCount = uniqueSet.size;
-        
-        // Log detailed information for debugging
-        console.log('[Unique Visitors] Calculation:', {
-          totalVisitorsInDB: totalVisitors,
-          recentVisitors: recentVisitors,
-          uniqueVisitors: uniqueVisitorsCount,
-          cutoffDate: cutoffDate
-        });
-        
-        // If we have visitors but count is 0, show all-time count as fallback
-        if (uniqueVisitorsCount === 0 && totalVisitors > 0) {
-          console.warn('[Unique Visitors] No recent visitors, counting all-time unique visitors');
-          const allTimeUnique = new Set();
-          allVisitors.forEach(v => {
-            if (v.ip_address) allTimeUnique.add(v.ip_address);
-          });
-          uniqueVisitorsCount = allTimeUnique.size;
-          console.log('[Unique Visitors] All-time unique visitors:', uniqueVisitorsCount);
-        }
-      }
-    } catch (err) {
-      console.error('[Unique Visitors] Error:', err);
-      // Final fallback: try simple count query
-      try {
-        const { count, error } = await supabase
-          .from('visitors')
-          .select('*', { count: 'exact', head: true });
-        
-        if (!error && count !== null) {
-          uniqueVisitorsCount = count;
-          console.log('[Unique Visitors] Fallback count:', uniqueVisitorsCount);
-        }
-      } catch (fallbackErr) {
-        console.error('[Unique Visitors] Fallback also failed:', fallbackErr);
-        uniqueVisitorsCount = 0;
-      }
-    }
-
-    // Display Actual Data stats
-    const actualUniqueEl = document.getElementById('actual-unique-count');
-    const actualTotalEl = document.getElementById('actual-total-count');
+    const messages = await adminRequest('/messages');
     const actualMessagesEl = document.getElementById('actual-messages-count');
-    
-    if (actualUniqueEl) {
-      actualUniqueEl.textContent = uniqueVisitorsCount.toLocaleString();
-    }
-    
-    if (actualTotalEl) {
-      actualTotalEl.textContent = (viewsResult.count || 0).toLocaleString();
-    }
-    
     if (actualMessagesEl) {
-      actualMessagesEl.textContent = (messagesResult.count || 0).toLocaleString();
+      actualMessagesEl.textContent = (messages.count || 0).toLocaleString();
     }
-      
-    // Show success status
-    showSuccess('Connected to Supabase database successfully!');
+    showSuccess('Secure admin connection established. Message records are loaded privately.');
 
-    // Load new structured sections
-    await loadUserGivenData();
-    await loadActualData();
+    await loadActualMessages();
 
   } catch (error) {
     console.error('Error loading analytics:', error);
@@ -1027,23 +924,9 @@ async function loadActualMessages() {
   if (!tbody) return;
 
   try {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">❌ Database connection error</td></tr>';
-      return;
-    }
-
-    const { data: messages, error } = await supabase
-      .from('messages')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(100);
-
-    if (error) {
-      console.error('Error loading actual messages:', error);
-      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-warning">⚠️ Error loading data</td></tr>';
-      return;
-    }
+    const { data: messages, count } = await adminRequest('/messages');
+    const countEl = document.getElementById('actual-messages-count');
+    if (countEl) countEl.textContent = (count || 0).toLocaleString();
 
     if (!messages || messages.length === 0) {
       tbody.innerHTML = '<tr><td colspan="8" class="text-center text-info">📭 No messages yet.</td></tr>';
@@ -1067,7 +950,7 @@ async function loadActualMessages() {
 
   } catch (err) {
     console.error('Error in loadActualMessages:', err);
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">❌ Error loading data</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">❌ ${err.message}</td></tr>`;
   }
 }
 
@@ -1235,21 +1118,11 @@ function showActualMessageModal(messageId) {
 
 // Mark message as read (for actual messages)
 async function markMessageRead(messageId) {
-  const supabase = getSupabaseClient();
-  if (!supabase) {
-    alert('Database connection error');
-    return;
-  }
-
   try {
-    const { error } = await supabase
-      .from('messages')
-      .update({ read_status: true })
-      .eq('id', messageId);
-
-    if (error) {
-      throw error;
-    }
+    await adminRequest(`/messages/${encodeURIComponent(messageId)}/read`, {
+      method: 'PATCH',
+      body: JSON.stringify({ read_status: true })
+    });
 
     // Update local data
     if (window.allActualMessages) {
@@ -1289,21 +1162,10 @@ async function deleteActualMessage(messageId) {
     return;
   }
 
-  const supabase = getSupabaseClient();
-  if (!supabase) {
-    alert('Database connection error');
-    return;
-  }
-
   try {
-    const { error } = await supabase
-      .from('messages')
-      .delete()
-      .eq('id', messageId);
-
-    if (error) {
-      throw error;
-    }
+    await adminRequest(`/messages/${encodeURIComponent(messageId)}`, {
+      method: 'DELETE'
+    });
 
     // Remove from local data
     if (window.allActualMessages) {
@@ -2049,4 +1911,3 @@ function getTimeAgo(date) {
 window.showActualMessageModal = showActualMessageModal;
 window.markMessageRead = markMessageRead;
 window.deleteActualMessage = deleteActualMessage;
-

@@ -10,6 +10,13 @@ const { supabase } = require('../config/database');
 // POST /api/views - Track profile view
 router.post('/', async (req, res) => {
   try {
+    if (!supabase) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database is not configured. Set SUPABASE_SERVICE_KEY in the backend .env file.'
+      });
+    }
+
     const { ip_address, user_agent, referrer, session_id } = req.body;
 
     const sessionId = session_id || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -18,7 +25,7 @@ router.post('/', async (req, res) => {
     const referer = referrer || req.get('referer') || 'direct';
 
     // Insert profile view
-    const { data: viewData, error: viewError } = await supabase
+    const { error: viewError } = await supabase
       .from('profile_views')
       .insert([
         {
@@ -27,9 +34,7 @@ router.post('/', async (req, res) => {
           referrer: referer,
           session_id: sessionId
         }
-      ])
-      .select()
-      .single();
+      ]);
 
     if (viewError) {
       console.error('Error tracking view:', viewError);
@@ -103,8 +108,7 @@ router.post('/', async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'View tracked successfully',
-      data: viewData
+      message: 'View tracked successfully'
     });
   } catch (error) {
     console.error('Error in POST /api/views:', error);
@@ -260,4 +264,3 @@ async function updateAnalytics(date, field) {
 }
 
 module.exports = router;
-
