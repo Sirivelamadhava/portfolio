@@ -3,9 +3,16 @@
  * Handles authentication, analytics loading, and dashboard functionality
  */
 
-const ADMIN_API_URL = `${window.PORTFOLIO_API_URL || 'http://localhost:3000'}/api/admin`;
+const localBackendUrl = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+  ? 'http://localhost:3000'
+  : '';
+const backendBaseUrl = (window.PORTFOLIO_API_URL || localBackendUrl).replace(/\/+$/, '');
+const ADMIN_API_URL = backendBaseUrl ? `${backendBaseUrl}/api/admin` : '';
 
 async function adminRequest(path, options = {}) {
+  if (!ADMIN_API_URL) {
+    throw new Error('Admin backend URL is not configured for this site. Set window.PORTFOLIO_API_URL to your deployed backend URL.');
+  }
   const headers = new Headers(options.headers || {});
   headers.set('Authorization', `Bearer ${sessionStorage.getItem('adminToken') || ''}`);
   if (options.body) {
@@ -147,6 +154,9 @@ function setupLoginForm() {
     errorDiv.textContent = '';
     
     try {
+      if (!ADMIN_API_URL) {
+        throw new Error('Admin backend URL is not configured for this site. Set window.PORTFOLIO_API_URL to your deployed backend URL.');
+      }
       const response = await fetch(`${ADMIN_API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

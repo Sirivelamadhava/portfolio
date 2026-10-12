@@ -233,9 +233,15 @@ async function updateViewCount() {
 
 // Submit contact form
 async function submitContactForm(formData) {
-  const backendBaseUrl = window.PORTFOLIO_API_URL || 'http://localhost:3000';
+  const localBackendUrl = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+    ? 'http://localhost:3000'
+    : '';
+  const backendBaseUrl = (window.PORTFOLIO_API_URL || localBackendUrl).replace(/\/+$/, '');
 
   try {
+    if (!backendBaseUrl) {
+      throw new Error('No deployed backend URL is configured; attempting the Supabase browser integration.');
+    }
     const response = await fetch(`${backendBaseUrl}/api/messages`, {
       method: 'POST',
       headers: {

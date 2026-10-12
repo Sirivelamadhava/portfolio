@@ -43,6 +43,12 @@ NODE_ENV=development
 
 The admin dashboard reads private message data through authenticated backend routes. `SUPABASE_SERVICE_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and `ADMIN_TOKEN_SECRET` are required for admin login and must never be exposed in frontend files or committed to source control. Restart the backend after changing `.env`.
 
+### Deploy to Render
+
+The repository-root `render.yaml` defines the backend service. In Render, create a Blueprint from this repository and set the values marked `sync: false` in the service's Environment settings. Use the Supabase project URL and keys, and set strong private admin credentials and a long random token secret. `FRONTEND_URL` should contain the exact deployed site origin(s), comma-separated if needed.
+
+After deployment, copy the service's HTTPS URL into `window.PORTFOLIO_API_URL` in `assets/js/backend-config.js`. Do not add `/api` to this URL. Commit and deploy the frontend change so the admin page and contact form use the Render service; local development continues to use `http://localhost:3000`.
+
 ### 3. Start the Server
 
 ```bash

@@ -1,0 +1,28 @@
+# Render Blueprint for the portfolio backend.
+
+services:
+  - type: web
+    name: portfolio-backend
+    env: node
+    plan: free
+    rootDir: portofolio/backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_TOKEN_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        value: https://sirivelamadhava.me,https://www.sirivelamadhava.me
+    healthCheckPath: /api/health

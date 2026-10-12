@@ -10,11 +10,19 @@ const { testConnection } = require('./config/database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5500';
+const FRONTEND_URLS = (process.env.FRONTEND_URL || 'http://localhost:5500')
+  .split(',')
+  .map((url) => url.trim())
+  .filter(Boolean);
 
 // Middleware
 app.use(cors({
-  origin: FRONTEND_URL,
+  origin(origin, callback) {
+    if (!origin || FRONTEND_URLS.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Origin is not allowed by CORS.'));
+  },
   credentials: true
 }));
 app.use(express.json());
@@ -69,7 +77,7 @@ async function startServer() {
     console.log('🚀 Portfolio Backend Server');
     console.log('=================================');
     console.log(`📍 Server running on: http://localhost:${PORT}`);
-    console.log(`🌐 Frontend URL: ${FRONTEND_URL}`);
+    console.log(`🌐 Frontend URLs: ${FRONTEND_URLS.join(', ')}`);
     console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
     console.log('=================================\n');
   });
