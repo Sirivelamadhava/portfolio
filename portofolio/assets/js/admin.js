@@ -289,7 +289,11 @@ async function loadAnalytics() {
     }
     showSuccess('Secure admin connection established. Message records are loaded privately.');
 
-    await loadActualMessages();
+    await Promise.all([
+      loadActualMessages(),
+      loadUserGivenData(),
+      loadActualData()
+    ]);
 
   } catch (error) {
     console.error('Error loading analytics:', error);
@@ -538,46 +542,8 @@ async function loadUserGivenData() {
   }
 
   try {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      console.error('Supabase client not available');
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">❌ Database connection error</td></tr>';
-      return;
-    }
-
     console.log('Loading user given data from visitor_responses table...');
-    
-    const { data: responses, error } = await supabase
-      .from('visitor_responses')
-      .select('*')
-      .order('response_time', { ascending: false })
-      .limit(1000); // Limit to prevent huge queries
-
-    if (error) {
-      console.error('❌ Error loading user given data:', error);
-      console.error('Error details:', {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint
-      });
-      
-      // Check if table doesn't exist
-      if (error.message && (error.message.includes('relation') || error.message.includes('does not exist'))) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-warning">⚠️ Table "visitor_responses" does not exist. Please run the SQL schema file in Supabase.</td></tr>';
-      } else {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-warning">⚠️ Error loading data: ${error.message}</td></tr>`;
-      }
-      
-      // Set stats to 0 on error
-      const uniqueCountEl = document.getElementById('user-unique-count');
-      const totalCountEl = document.getElementById('user-total-count');
-      const namesCountEl = document.getElementById('user-with-names-count');
-      if (uniqueCountEl) uniqueCountEl.textContent = '0';
-      if (totalCountEl) totalCountEl.textContent = '0';
-      if (namesCountEl) namesCountEl.textContent = '0';
-      return;
-    }
+    const { data: responses } = await adminRequest('/visitor-responses');
 
     console.log('User given data loaded:', responses?.length || 0, 'responses');
     
@@ -737,42 +703,29 @@ async function loadActualVisitors() {
   if (!tbody) return;
 
   try {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">❌ Database connection error</td></tr>';
-      return;
+    const { data: visitors, count } = await adminRequest('/visitors');
+    window.allActualVisitors = visitors || [];
+    const uniqueCountElement = document.getElementById('actual-unique-count');
+    if (uniqueCountElement) {
+      uniqueCountElement.textContent = (count || 0).toLocaleString();
     }
 
-    const { data: visitors, error } = await supabase
-      .from('visitors')
-      .select('*')
-      .order('last_visit', { ascending: false })
-      .limit(100);
-
-    if (error) {
-      console.error('Error loading actual visitors:', error);
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-warning">⚠️ Error loading data</td></tr>';
-      return;
-    }
-
-    if (!visitors || visitors.length === 0) {
+    if (window.allActualVisitors.length === 0) {
       tbody.innerHTML = '<tr><td colspan="5" class="text-center text-info">📭 No visitor data yet.</td></tr>';
-      return;
+    } else {
+      renderActualVisitorsTable(10);
     }
-
-    window.allActualVisitors = visitors;
-    renderActualVisitorsTable(10);
 
     // Update tab label
     const visitorsTab = document.getElementById('visitors-tab');
     if (visitorsTab) {
-      const count = visitors.length > 10 ? '10+' : visitors.length.toString();
-      visitorsTab.innerHTML = `<i class="bi bi-people"></i> Visitors (${count})`;
+      const labelCount = count > 10 ? '10+' : String(count || 0);
+      visitorsTab.innerHTML = `<i class="bi bi-people"></i> Visitors (${labelCount})`;
     }
 
     const viewMoreContainer = document.getElementById('visitors-view-more-container');
-    if (viewMoreContainer && visitors.length > 10) {
-      viewMoreContainer.style.display = 'block';
+    if (viewMoreContainer) {
+      viewMoreContainer.style.display = window.allActualVisitors.length > 10 ? 'block' : 'none';
     }
 
   } catch (err) {
@@ -836,42 +789,29 @@ async function loadActualViews() {
   if (!tbody) return;
 
   try {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">❌ Database connection error</td></tr>';
-      return;
+    const { data: views, count } = await adminRequest('/views');
+    window.allActualViews = views || [];
+    const totalCountElement = document.getElementById('actual-total-count');
+    if (totalCountElement) {
+      totalCountElement.textContent = (count || 0).toLocaleString();
     }
 
-    const { data: views, error } = await supabase
-      .from('profile_views')
-      .select('*')
-      .order('viewed_at', { ascending: false })
-      .limit(100);
-
-    if (error) {
-      console.error('Error loading actual views:', error);
-      tbody.innerHTML = '<tr><td colspan="4" class="text-center text-warning">⚠️ Error loading data</td></tr>';
-      return;
-    }
-
-    if (!views || views.length === 0) {
+    if (window.allActualViews.length === 0) {
       tbody.innerHTML = '<tr><td colspan="4" class="text-center text-info">📭 No profile views yet.</td></tr>';
-      return;
+    } else {
+      renderActualViewsTable(10);
     }
-
-    window.allActualViews = views;
-    renderActualViewsTable(10);
 
     // Update tab label
     const viewsTab = document.getElementById('views-tab');
     if (viewsTab) {
-      const count = views.length > 10 ? '10+' : views.length.toString();
-      viewsTab.innerHTML = `<i class="bi bi-eye"></i> Profile Views (${count})`;
+      const labelCount = count > 10 ? '10+' : String(count || 0);
+      viewsTab.innerHTML = `<i class="bi bi-eye"></i> Profile Views (${labelCount})`;
     }
 
     const viewMoreContainer = document.getElementById('views-view-more-container');
-    if (viewMoreContainer && views.length > 10) {
-      viewMoreContainer.style.display = 'block';
+    if (viewMoreContainer) {
+      viewMoreContainer.style.display = window.allActualViews.length > 10 ? 'block' : 'none';
     }
 
   } catch (err) {
@@ -1590,42 +1530,16 @@ document.addEventListener('DOMContentLoaded', function() {
 async function loadOnlineUsers() {
   const tbody = document.getElementById('online-users-table');
   if (!tbody) return;
-  
-  const supabase = getSupabaseClient();
-  if (!supabase) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Database connection error</td></tr>';
-    return;
-  }
 
   try {
-    // Get last 5 minutes timestamp for truly active users
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-    
-    // Query ALL recent profile views (this shows all active sessions/viewers)
-    const { data: recentViews, error: viewsError } = await supabase
-      .from('profile_views')
-      .select('ip_address, viewed_at, referrer, user_agent, session_id')
-      .gte('viewed_at', fiveMinutesAgo)
-      .order('viewed_at', { ascending: false })
-      .limit(1000); // Get up to 1000 recent views to capture all online users
-
-    if (viewsError) {
-      console.error('❌ Error loading profile views:', viewsError);
-      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading online users: ' + (viewsError.message || 'Unknown error') + '</td></tr>';
-      return;
-    }
+    const { views: recentViews, responses: visitorResponses } = (await adminRequest('/online-users')).data;
 
     if (!recentViews || recentViews.length === 0) {
       tbody.innerHTML = '<tr><td colspan="6" class="text-center text-info">📭 No users online right now</td></tr>';
       window.allOnlineUsers = [];
       return;
     }
-
-    // Get visitor names from visitor_responses - get ALL responses (not just with names)
-    const { data: visitorResponses } = await supabase
-      .from('visitor_responses')
-      .select('visitor_id, ip_address, visitor_name, session_id')
-      .order('response_time', { ascending: false }); // Get most recent first
 
     // Create multiple maps for name lookup by different identifiers
     const nameMapBySessionId = new Map();

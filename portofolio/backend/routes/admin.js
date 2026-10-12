@@ -68,6 +68,81 @@ router.get('/messages', async (req, res) => {
   res.json({ success: true, data: data || [], count: count || 0 });
 });
 
+router.get('/visitors', async (req, res) => {
+  const { data, error, count } = await adminSupabase
+    .from('visitors')
+    .select('ip_address, user_agent, visit_count, first_visit, last_visit', { count: 'exact' })
+    .order('last_visit', { ascending: false })
+    .range(0, 99);
+
+  if (error) {
+    console.error('Error fetching admin visitors:', error);
+    return res.status(500).json({ success: false, message: 'Failed to load visitors.' });
+  }
+
+  res.json({ success: true, data: data || [], count: count || 0 });
+});
+
+router.get('/views', async (req, res) => {
+  const { data, error, count } = await adminSupabase
+    .from('profile_views')
+    .select('ip_address, user_agent, referrer, session_id, viewed_at', { count: 'exact' })
+    .order('viewed_at', { ascending: false })
+    .range(0, 99);
+
+  if (error) {
+    console.error('Error fetching admin profile views:', error);
+    return res.status(500).json({ success: false, message: 'Failed to load profile views.' });
+  }
+
+  res.json({ success: true, data: data || [], count: count || 0 });
+});
+
+router.get('/visitor-responses', async (req, res) => {
+  const { data, error, count } = await adminSupabase
+    .from('visitor_responses')
+    .select('visitor_id, visitor_name, user_response, actual_first_visit, session_id, ip_address, response_time', { count: 'exact' })
+    .order('response_time', { ascending: false })
+    .range(0, 999);
+
+  if (error) {
+    console.error('Error fetching admin visitor responses:', error);
+    return res.status(500).json({ success: false, message: 'Failed to load visitor responses.' });
+  }
+
+  res.json({ success: true, data: data || [], count: count || 0 });
+});
+
+router.get('/online-users', async (req, res) => {
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  const [viewsResult, responsesResult] = await Promise.all([
+    adminSupabase
+      .from('profile_views')
+      .select('ip_address, viewed_at, referrer, user_agent, session_id')
+      .gte('viewed_at', fiveMinutesAgo)
+      .order('viewed_at', { ascending: false })
+      .limit(1000),
+    adminSupabase
+      .from('visitor_responses')
+      .select('visitor_id, ip_address, visitor_name, session_id')
+      .order('response_time', { ascending: false })
+      .limit(1000)
+  ]);
+
+  if (viewsResult.error || responsesResult.error) {
+    console.error('Error fetching admin online users:', viewsResult.error || responsesResult.error);
+    return res.status(500).json({ success: false, message: 'Failed to load online users.' });
+  }
+
+  res.json({
+    success: true,
+    data: {
+      views: viewsResult.data || [],
+      responses: responsesResult.data || []
+    }
+  });
+});
+
 router.patch('/messages/:id/read', async (req, res) => {
   const { error } = await adminSupabase
     .from('messages')
