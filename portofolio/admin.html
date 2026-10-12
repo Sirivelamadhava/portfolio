@@ -771,28 +771,7 @@
   </div>
   </div>
 
-  <!-- Supabase Client Library -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="assets/js/supabase-config.js"></script>
   <script src="assets/js/backend-config.js"></script>
-  <script>
-    // Ensure Supabase is initialized before admin.js runs
-    document.addEventListener('DOMContentLoaded', function() {
-      // Wait for Supabase library and config to load
-      function waitForSupabase() {
-        if (typeof supabase !== 'undefined' && window.SupabaseConfig) {
-          // Force initialization
-          if (window.SupabaseConfig.init) {
-            window.SupabaseConfig.init();
-          }
-          console.log('✓ Admin: Supabase ready');
-        } else {
-          setTimeout(waitForSupabase, 100);
-        }
-      }
-      waitForSupabase();
-    });
-  </script>
   <script src="assets/js/admin.js"></script>
 </body>
 </html>
